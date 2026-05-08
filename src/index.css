@@ -1,0 +1,295 @@
+@import "tailwindcss";
+
+@theme {
+  /* Map CSS variables to Tailwind color utilities */
+  --color-theme-primary: var(--color-primary);
+  --color-theme-primary-dark: var(--color-primary-dark);
+  --color-theme-chat-bg: var(--color-chat-bg);
+  --color-theme-message-own: var(--color-message-own);
+  --color-theme-message-other: var(--color-message-other);
+  --color-theme-text-on-primary: var(--color-text-on-primary);
+  --color-theme-text-on-own: var(--color-text-on-own);
+  --color-theme-text-on-other: var(--color-text-on-other);
+  --color-theme-border: var(--color-border);
+  --color-theme-input-bg: var(--color-input-bg);
+  --color-theme-header-bg: var(--color-header-bg);
+  
+  /* Gradient support */
+  --gradient-theme-message-own: var(--color-message-own);
+}
+
+@variant dark (&:where(.dark, .dark *));
+
+/* Theme System - CSS Custom Properties */
+
+/* WhatsApp + Light Theme */
+:root[data-theme="whatsapp-light"] {
+  --color-primary: #25d366;
+  --color-primary-dark: #1da851;
+  --color-chat-bg: #e5ddd5;
+  --color-message-own: #dcf8c6;
+  --color-message-other: #ffffff;
+  --color-text-on-primary: #ffffff;
+  --color-text-on-own: #000000;
+  --color-text-on-other: #000000;
+  --color-border: #d1d7db;
+  --color-input-bg: #ffffff;
+  --color-header-bg: #075e54;
+}
+
+/* WhatsApp + Dark Theme */
+:root[data-theme="whatsapp-dark"] {
+  --color-primary: #25d366;
+  --color-primary-dark: #1da851;
+  --color-chat-bg: #1a1a1a;
+  --color-message-own: #dcf8c6;
+  --color-message-other: #2d2d2d;
+  --color-text-on-primary: #ffffff;
+  --color-text-on-own: #000000;
+  --color-text-on-other: #ffffff;
+  --color-border: #3d3d3d;
+  --color-input-bg: #2d2d2d;
+  --color-header-bg: #05442e;
+}
+
+/* Telegram + Light Theme */
+:root[data-theme="telegram-light"] {
+  --color-primary: #0088cc;
+  --color-primary-dark: #006699;
+  --color-chat-bg: #e4e9ec;
+  --color-message-own: #effdde;
+  --color-message-other: #ffffff;
+  --color-text-on-primary: #ffffff;
+  --color-text-on-own: #000000;
+  --color-text-on-other: #000000;
+  --color-border: #c8d1d8;
+  --color-input-bg: #ffffff;
+  --color-header-bg: #517da2;
+}
+
+/* Telegram + Dark Theme */
+:root[data-theme="telegram-dark"] {
+  --color-primary: #0088cc;
+  --color-primary-dark: #006699;
+  --color-chat-bg: #1e2329;
+  --color-message-own: #effdde;
+  --color-message-other: #2b3b4e;
+  --color-text-on-primary: #ffffff;
+  --color-text-on-own: #000000;
+  --color-text-on-other: #ffffff;
+  --color-border: #3a4a5c;
+  --color-input-bg: #2b3b4e;
+  --color-header-bg: #365180;
+}
+
+/* Legacy theme support (for backwards compatibility) */
+:root[data-theme="light"] {
+  --color-primary: #25d366;
+  --color-primary-dark: #1da851;
+  --color-chat-bg: #e5ddd5;
+  --color-message-own: #dcf8c6;
+  --color-message-other: #ffffff;
+  --color-text-on-primary: #ffffff;
+  --color-text-on-own: #000000;
+  --color-text-on-other: #000000;
+  --color-border: #d1d7db;
+  --color-input-bg: #ffffff;
+  --color-header-bg: #075e54;
+}
+
+:root[data-theme="dark"] {
+  --color-primary: #25d366;
+  --color-primary-dark: #1da851;
+  --color-chat-bg: #1a1a1a;
+  --color-message-own: #dcf8c6;
+  --color-message-other: #2d2d2d;
+  --color-text-on-primary: #ffffff;
+  --color-text-on-own: #000000;
+  --color-text-on-other: #ffffff;
+  --color-border: #3d3d3d;
+  --color-input-bg: #2d2d2d;
+  --color-header-bg: #05442e;
+}
+
+:root[data-theme="whatsapp"] {
+  --color-primary: #25d366;
+  --color-primary-dark: #1da851;
+  --color-chat-bg: #e5ddd5;
+  --color-message-own: #dcf8c6;
+  --color-message-other: #ffffff;
+  --color-text-on-primary: #ffffff;
+  --color-text-on-own: #000000;
+  --color-text-on-other: #000000;
+  --color-border: #d1d7db;
+  --color-input-bg: #ffffff;
+  --color-header-bg: #075e54;
+}
+
+:root[data-theme="telegram"] {
+  --color-primary: #0088cc;
+  --color-primary-dark: #006699;
+  --color-chat-bg: #e4e9ec;
+  --color-message-own: #effdde;
+  --color-message-other: #ffffff;
+  --color-text-on-primary: #ffffff;
+  --color-text-on-own: #000000;
+  --color-text-on-other: #000000;
+  --color-border: #c8d1d8;
+  --color-input-bg: #ffffff;
+  --color-header-bg: #517da2;
+}
+
+@layer base {
+  * {
+    transition: background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease;
+  }
+}
+
+/* Pinned message scroll-to highlight */
+.highlight-message {
+  animation: msg-highlight 2s ease-out;
+}
+
+@keyframes msg-highlight {
+  0%, 15% {
+    background-color: rgba(139, 92, 246, 0.15);
+    border-radius: 1rem;
+  }
+  100% {
+    background-color: transparent;
+  }
+}
+
+/* Emoji picker slide-up animation */
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(8px) scale(0.96);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+/* Message fade-in animation */
+.msg-fade-in {
+  animation: msgFadeIn 0.3s ease-out both, typingPulse 2s ease-in-out infinite;
+}
+
+@keyframes msgFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(12px) scale(0.97);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes typingPulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.85;
+  }
+}
+
+/* Typing indicator bouncing dots */
+.typing-dots {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+}
+.typing-dots span {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background-color: currentColor;
+  animation: typingBounce 1.4s ease-in-out infinite;
+}
+.typing-dots span:nth-child(2) {
+  animation-delay: 0.2s;
+}
+.typing-dots span:nth-child(3) {
+  animation-delay: 0.4s;
+}
+
+/* Smaller typing dots for header */
+.typing-dots-small {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+}
+.typing-dots-small span {
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background-color: currentColor;
+  animation: typingBounce 1.4s ease-in-out infinite;
+}
+.typing-dots-small span:nth-child(2) {
+  animation-delay: 0.2s;
+}
+.typing-dots-small span:nth-child(3) {
+  animation-delay: 0.4s;
+}
+
+@keyframes typingBounce {
+  0%, 60%, 100% {
+    transform: translateY(0);
+    opacity: 0.5;
+  }
+  30% {
+    transform: translateY(-8px);
+    opacity: 1;
+  }
+}
+
+/* Interactive button hover */
+.btn-hover {
+  transition: all 0.2s ease;
+}
+.btn-hover:hover {
+  transform: scale(1.08);
+}
+.btn-hover:active {
+  transform: scale(0.95);
+}
+
+/* Smooth scroll container */
+.smooth-scroll {
+  scroll-behavior: smooth;
+}
+
+/* Chat scrollbar */
+.chat-scroll::-webkit-scrollbar {
+  width: 5px;
+}
+.chat-scroll::-webkit-scrollbar-track {
+  background: transparent;
+}
+.chat-scroll::-webkit-scrollbar-thumb {
+  background: rgba(156, 163, 175, 0.2);
+  border-radius: 10px;
+}
+.chat-scroll::-webkit-scrollbar-thumb:hover {
+  background: rgba(156, 163, 175, 0.4);
+}
+
+/* Emoji picker scrollbar */
+.emoji-scroll::-webkit-scrollbar {
+  width: 4px;
+}
+.emoji-scroll::-webkit-scrollbar-track {
+  background: transparent;
+}
+.emoji-scroll::-webkit-scrollbar-thumb {
+  background: rgba(156, 163, 175, 0.3);
+  border-radius: 4px;
+}
+.emoji-scroll::-webkit-scrollbar-thumb:hover {
+  background: rgba(156, 163, 175, 0.5);
+}
