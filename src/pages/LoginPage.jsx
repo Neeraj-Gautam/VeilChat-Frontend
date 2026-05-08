@@ -15,7 +15,7 @@ const LoginPage = () => {
     setError('')
     try {
       const { data } = await authService.login(form)
-      setAuth(data.data.user, data.data.accessToken)
+      setAuth(data.data.user, data.data.accessToken, data.data.refreshToken)
       initSocket(data.data.accessToken)
       navigate('/')
     } catch (err) {

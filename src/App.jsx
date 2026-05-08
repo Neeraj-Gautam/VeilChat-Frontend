@@ -21,8 +21,12 @@ const App = () => {
   useEffect(() => {
     const initAuth = async () => {
       try {
-        const { data } = await authService.refresh()
-        setAuth(data.data.user, data.data.accessToken)
+        const refreshToken = useAuthStore.getState().getRefreshToken()
+        if (!refreshToken) {
+          throw new Error('No refresh token')
+        }
+        const { data } = await authService.refresh(refreshToken)
+        setAuth(data.data.user, data.data.accessToken, data.data.refreshToken)
         initSocket(data.data.accessToken)
       } catch {
         clearAuth()
