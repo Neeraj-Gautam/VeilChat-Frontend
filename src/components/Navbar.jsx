@@ -56,11 +56,11 @@ const Navbar = () => {
 
   return (
     <>
-      <nav className="flex items-center justify-between px-6 py-3 bg-theme-header-bg border-b border-theme-border">
-        <Link to="/" className="text-lg font-semibold text-theme-text-on-primary">
+      <nav className="flex items-center justify-between px-3 md:px-6 py-3 bg-theme-header-bg border-b border-theme-border">
+        <Link to="/" className="text-base md:text-lg font-semibold text-theme-text-on-primary truncate">
           VeilChat
         </Link>
-        <div className="flex items-center gap-4">
+        <div className="flex items-center gap-2 md:gap-4 shrink-0">
           {/* Settings Link */}
           {user && (
             <Link
