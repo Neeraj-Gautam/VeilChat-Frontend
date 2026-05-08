@@ -32,8 +32,8 @@ const ChatPage = () => {
 
   return (
     <div className="flex flex-1 h-[calc(100vh-53px)]">
-      {/* Sidebar */}
-      <aside className="w-80 border-r border-gray-100 dark:border-gray-800 bg-white dark:bg-gray-900 flex flex-col">
+      {/* Sidebar - Hidden on mobile when chat is active */}
+      <aside className={`${activeChat ? 'hidden md:flex' : 'flex'} w-full md:w-80 border-r border-gray-100 dark:border-gray-800 bg-white dark:bg-gray-900 flex-col`}>
         <div className="px-4 py-3.5 border-b border-gray-100 dark:border-gray-800 flex items-center justify-between">
           <h2 className="text-base font-bold text-gray-900 dark:text-gray-100">Messages</h2>
           <button
@@ -46,8 +46,8 @@ const ChatPage = () => {
         <ChatList />
       </aside>
 
-      {/* Main window */}
-      <section className="flex-1 flex flex-col bg-gray-50 dark:bg-gray-950 min-w-0">
+      {/* Main window - Hidden on mobile when no chat is active */}
+      <section className={`${activeChat ? 'flex' : 'hidden md:flex'} flex-1 flex-col bg-gray-50 dark:bg-gray-950 min-w-0`}>
         {activeChat ? (
           <div className="flex flex-1 h-full">
             <div className="flex-1 flex flex-col min-w-0">
