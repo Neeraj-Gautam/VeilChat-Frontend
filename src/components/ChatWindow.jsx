@@ -98,6 +98,22 @@ const ChatWindow = ({ onToggleInfo }) => {
     }
   }, [])
 
+  // Fetch messages when activeChat changes
+  useEffect(() => {
+    if (!activeChat) return
+    
+    const fetchMessages = async () => {
+      try {
+        const { data } = await messageService.getMessages(activeChat._id)
+        useChatStore.getState().setMessages(data.data || [])
+      } catch (error) {
+        console.error('Failed to fetch messages:', error)
+      }
+    }
+    
+    fetchMessages()
+  }, [activeChat?._id])
+
   // Scroll to bottom when messages are loaded for a chat
   useEffect(() => {
     if (!activeChat || messages.length === 0) return
