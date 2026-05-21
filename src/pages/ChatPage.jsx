@@ -31,14 +31,14 @@ const ChatPage = () => {
   }, [activeChat?._id])
 
   return (
-    <div className="flex flex-1 h-[calc(100vh-53px)] w-full overflow-hidden">
+    <div className="flex flex-1 min-h-0 w-full overflow-hidden">
       {/* Sidebar - Hidden on mobile when chat is active */}
-      <aside className={`${activeChat ? 'hidden md:flex' : 'flex'} w-full md:w-80 border-r border-gray-100 dark:border-gray-800 bg-white dark:bg-gray-900 flex-col overflow-hidden`}>
+      <aside className={`${activeChat ? 'hidden md:flex' : 'flex'} w-full md:w-80 md:max-w-[min(20rem,35vw)] md:shrink-0 border-r border-gray-100 dark:border-gray-800 bg-white dark:bg-gray-900 flex-col overflow-hidden min-w-0`}>
         <div className="px-4 py-3.5 border-b border-gray-100 dark:border-gray-800 flex items-center justify-between shrink-0">
           <h2 className="text-base font-bold text-gray-900 dark:text-gray-100">Messages</h2>
           <button
             onClick={() => setShowModal(true)}
-            className="text-xs font-medium bg-gradient-to-r from-blue-500 to-purple-600 text-white px-3 py-1.5 rounded-lg hover:opacity-90 transition-opacity shadow-sm btn-hover"
+            className="min-h-11 text-xs font-medium bg-gradient-to-r from-blue-500 to-purple-600 text-white px-3 py-2 rounded-lg hover:opacity-90 transition-opacity shadow-sm btn-hover"
           >
             + New
           </button>
@@ -54,7 +54,15 @@ const ChatPage = () => {
               <ChatWindow onToggleInfo={() => setShowGroupInfo((v) => !v)} />
             </div>
             {showGroupInfo && activeChat.isGroupChat && (
-              <GroupInfoPanel onClose={() => setShowGroupInfo(false)} />
+              <>
+                <button
+                  type="button"
+                  aria-label="Close group info"
+                  className="md:hidden fixed inset-0 z-30 bg-black/40"
+                  onClick={() => setShowGroupInfo(false)}
+                />
+                <GroupInfoPanel onClose={() => setShowGroupInfo(false)} />
+              </>
             )}
           </div>
         ) : (
@@ -70,7 +78,7 @@ const ChatPage = () => {
             </div>
             <button
               onClick={() => setShowModal(true)}
-              className="text-sm bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700"
+              className="min-h-11 text-sm bg-blue-600 text-white px-4 py-2.5 rounded-lg hover:bg-blue-700"
             >
               New Chat
             </button>

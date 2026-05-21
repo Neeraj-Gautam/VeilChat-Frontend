@@ -67,13 +67,13 @@ const SettingsPage = () => {
   const currentMode = modes.find(m => m.id === theme.mode) || modes[0]
 
   return (
-    <div className="min-h-screen bg-theme-chat-bg">
+    <div className="flex-1 min-h-0 overflow-y-auto bg-theme-chat-bg w-full">
       {/* Header */}
-      <div className="bg-theme-header-bg border-b border-theme-border px-6 py-4">
-        <div className="max-w-4xl mx-auto flex items-center gap-4">
+      <div className="bg-theme-header-bg border-b border-theme-border px-4 sm:px-6 py-4 shrink-0">
+        <div className="max-w-4xl mx-auto flex items-center gap-4 min-w-0">
           <button
             onClick={() => navigate('/')}
-            className="text-theme-text-on-primary hover:opacity-80 transition"
+            className="touch-target flex items-center justify-center text-theme-text-on-primary hover:opacity-80 transition rounded-lg shrink-0"
             aria-label="Go back"
           >
             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-6 h-6">
@@ -85,7 +85,7 @@ const SettingsPage = () => {
       </div>
 
       {/* Content */}
-      <div className="max-w-4xl mx-auto p-6">
+      <div className="max-w-4xl mx-auto p-4 sm:p-6 pb-8">
         {/* Profile Section */}
         <div className="bg-theme-input-bg rounded-xl p-6 mb-4 border border-theme-border">
           <h2 className="text-lg font-semibold text-theme-text-on-other mb-4">Profile</h2>

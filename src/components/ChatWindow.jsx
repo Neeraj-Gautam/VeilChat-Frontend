@@ -7,6 +7,7 @@ import uploadService from '../services/upload.service'
 import { getSocket } from '../sockets/socket'
 import { formatTime } from '../utils/formatTime'
 import useChatStore from '../store/useChatStore'
+import useThemeStore from '../store/useThemeStore'
 import ForwardModal from './ForwardModal'
 import MessageContent from './MessageContent'
 import ImageViewer from './ImageViewer'
@@ -74,6 +75,9 @@ const ChatWindow = ({ onToggleInfo }) => {
   const isTypingRef = useRef(false)
   const messageRefs = useRef({})
   const longPressTimerRef = useRef(null)
+  const emojiAnchorRef = useRef(null)
+  const composeInputRef = useRef(null)
+  const theme = useThemeStore((s) => s.theme)
 
   const isNearBottom = () => {
     const el = containerRef.current
@@ -97,6 +101,43 @@ const ChatWindow = ({ onToggleInfo }) => {
       }
     }
   }, [])
+
+  // #region agent log
+  const logComposeInputColors = useCallback((trigger) => {
+    const el = composeInputRef.current
+    const root = document.documentElement
+    const rootCs = getComputedStyle(root)
+    const elCs = el ? getComputedStyle(el) : null
+    fetch('http://127.0.0.1:7900/ingest/c3f3a866-d3d9-4d4c-87f5-b836903ca427', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'X-Debug-Session-Id': 'd906ca' },
+      body: JSON.stringify({
+        sessionId: 'd906ca',
+        runId: 'compose-verify',
+        hypothesisId: 'H1',
+        location: 'ChatWindow.jsx:compose-colors',
+        message: 'compose input computed colors',
+        data: {
+          trigger,
+          dataTheme: root.getAttribute('data-theme'),
+          themeBase: theme.base,
+          themeMode: theme.mode,
+          htmlHasDarkClass: root.classList.contains('dark'),
+          composeBgVar: rootCs.getPropertyValue('--color-compose-bg').trim(),
+          composeTextVar: rootCs.getPropertyValue('--color-compose-text').trim(),
+          computedColor: elCs?.color ?? null,
+          computedBg: elCs?.backgroundColor ?? null,
+          usesComposeTextClass: el?.className?.includes('text-theme-compose-text') ?? false,
+        },
+        timestamp: Date.now(),
+      }),
+    }).catch(() => {})
+  }, [theme.base, theme.mode])
+
+  useEffect(() => {
+    logComposeInputColors('theme-change')
+  }, [theme.base, theme.mode, logComposeInputColors])
+  // #endregion
 
   // Fetch messages when activeChat changes
   useEffect(() => {
@@ -602,12 +643,12 @@ const ChatWindow = ({ onToggleInfo }) => {
           </div>
         </div>
       ) : (
-        <div className="px-4 py-3 border-b border-theme-border bg-theme-header-bg flex items-center justify-between">
-          <div className="flex items-center gap-3">
+        <div className="px-3 sm:px-4 py-3 border-b border-theme-border bg-theme-header-bg flex items-center justify-between gap-2 min-w-0 shrink-0">
+          <div className="flex items-center gap-2 sm:gap-3 min-w-0 flex-1">
             {/* Back button for mobile */}
             <button
               onClick={() => useChatStore.getState().setActiveChat(null)}
-              className="md:hidden text-gray-400 hover:text-blue-500 p-1 rounded-lg btn-hover"
+              className="md:hidden touch-target flex items-center justify-center text-gray-400 hover:text-blue-500 rounded-lg btn-hover shrink-0"
               title="Back to chats"
             >
               <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-5 h-5">
@@ -644,8 +685,8 @@ const ChatWindow = ({ onToggleInfo }) => {
                 <span className="absolute bottom-0 right-0 w-2 h-2 bg-green-500 border-2 border-white dark:border-gray-900 rounded-full" />
               )}
             </div>
-            <div>
-              <p className="text-sm font-semibold text-theme-text-on-primary">
+            <div className="min-w-0">
+              <p className="text-sm font-semibold text-theme-text-on-primary truncate">
                 {activeChat.isGroupChat ? activeChat.groupName : otherUser?.name}
               </p>
               {activeChat.isGroupChat ? (
@@ -679,7 +720,7 @@ const ChatWindow = ({ onToggleInfo }) => {
               )}
             </div>
           </div>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-1 shrink-0">
             {/* Menu button with dropdown */}
             <div className="relative">
               <button
@@ -687,7 +728,7 @@ const ChatWindow = ({ onToggleInfo }) => {
                   e.stopPropagation()
                   setShowHeaderMenu(!showHeaderMenu)
                 }}
-                className="text-gray-400 hover:text-blue-500 p-1 rounded-lg btn-hover"
+                className="touch-target flex items-center justify-center text-gray-400 hover:text-blue-500 rounded-lg btn-hover"
                 title="More options"
               >
                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-5 h-5">
@@ -735,7 +776,7 @@ const ChatWindow = ({ onToggleInfo }) => {
             </div>
 
             {activeChat.isGroupChat && (
-              <button onClick={() => onToggleInfo?.()} className="text-gray-400 hover:text-blue-500 p-1 rounded-lg btn-hover" title="Group info">
+              <button onClick={() => onToggleInfo?.()} className="touch-target flex items-center justify-center text-gray-400 hover:text-blue-500 rounded-lg btn-hover" title="Group info">
                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-5 h-5">
                   <path fillRule="evenodd" d="M2.25 12c0-5.385 4.365-9.75 9.75-9.75s9.75 4.365 9.75 9.75-4.365 9.75-9.75 9.75S2.25 17.385 2.25 12zm8.706-1.442c1.146-.573 2.437.463 2.126 1.706l-.709 2.836.042-.02a.75.75 0 01.67 1.34l-.04.022c-1.147.573-2.438-.463-2.127-1.706l.71-2.836-.042.02a.75.75 0 11-.671-1.34l.041-.022zM12 9a.75.75 0 100-1.5.75.75 0 000 1.5z" clipRule="evenodd" />
                 </svg>
@@ -839,7 +880,7 @@ const ChatWindow = ({ onToggleInfo }) => {
       )}
 
       {/* Messages */}
-      <div ref={containerRef} className="flex-1 overflow-y-auto px-4 py-3 space-y-3 bg-theme-chat-bg smooth-scroll chat-scroll">
+      <div ref={containerRef} className={`flex-1 overflow-y-auto overflow-x-hidden px-3 sm:px-4 py-3 space-y-3 bg-theme-chat-bg smooth-scroll chat-scroll ${selectionMode ? 'pl-8 sm:pl-4' : ''}`}>
         {sortedMessages.length === 0 ? (
           <div className="flex flex-col items-center justify-center h-full py-12 px-4 text-center">
             <div className="w-16 h-16 rounded-full bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center mb-4">
@@ -923,7 +964,7 @@ const ChatWindow = ({ onToggleInfo }) => {
                       setCtxMenu({ msg, x: e.clientX, y: e.clientY })
                     }}
                   >
-                    <div className={`relative max-w-[70%] ${
+                    <div className={`relative max-w-[min(85%,20rem)] sm:max-w-[70%] ${
                       isEmojiOnly(msg.content) && !msg.attachments?.length && !msg.replyTo && !msg.forwardedFrom && !msg.forwardedFromChat
                         ? 'bg-transparent shadow-none' // No background for emoji-only messages
                         : `px-4 py-2 rounded-2xl shadow-md transition-shadow hover:shadow-lg ${
@@ -988,7 +1029,7 @@ const ChatWindow = ({ onToggleInfo }) => {
                                 <img 
                                   src={attachment.url} 
                                   alt="attachment" 
-                                  className="max-w-xs rounded-lg cursor-pointer hover:opacity-90 transition"
+                                  className="max-w-full sm:max-w-xs h-auto rounded-lg cursor-pointer hover:opacity-90 transition object-contain"
                                   onClick={() => {
                                     // Get all images from current chat
                                     const allImages = messages
@@ -1102,8 +1143,8 @@ const ChatWindow = ({ onToggleInfo }) => {
       )}
 
       {/* Input */}
-      <div className="px-3 py-3 border-t border-theme-border bg-theme-input-bg">
-        <div className="flex items-end gap-2">
+      <div className="px-3 py-3 border-t border-theme-border bg-theme-input-bg safe-area-bottom shrink-0">
+        <div className="flex items-end gap-2 min-w-0">
           <input
             ref={fileInputRef}
             type="file"
@@ -1114,15 +1155,15 @@ const ChatWindow = ({ onToggleInfo }) => {
           />
 
           {/* Input bar container */}
-          <div className="flex-1 flex items-end bg-gray-100 dark:bg-gray-800 rounded-3xl px-1.5 py-1 transition-all focus-within:ring-2 focus-within:ring-blue-500/30 focus-within:bg-gray-50 dark:focus-within:bg-gray-700 relative">
-            {/* Emoji button + picker */}
-            <div className="relative shrink-0">
+          <div className="flex-1 flex items-end bg-theme-compose-bg border border-theme-border/40 rounded-3xl px-1.5 py-1 transition-all focus-within:ring-2 focus-within:ring-theme-primary/40 relative">
+            {/* Emoji button */}
+            <div className="shrink-0" ref={emojiAnchorRef}>
               <button
                 onClick={() => setShowEmojiPicker((v) => !v)}
-                className={`p-2 rounded-full transition-colors btn-hover ${
+                className={`touch-target flex items-center justify-center rounded-full transition-colors btn-hover shrink-0 ${
                   showEmojiPicker
                     ? 'text-yellow-500 bg-yellow-500/10'
-                    : 'text-gray-400 hover:text-yellow-500'
+                    : 'text-theme-compose-muted hover:text-theme-primary'
                 }`}
                 title="Emoji"
                 type="button"
@@ -1131,24 +1172,27 @@ const ChatWindow = ({ onToggleInfo }) => {
                   <path fillRule="evenodd" d="M12 2.25c-5.385 0-9.75 4.365-9.75 9.75s4.365 9.75 9.75 9.75 9.75-4.365 9.75-9.75S17.385 2.25 12 2.25zm-2.625 6c-.54 0-.828.419-.936.634a1.96 1.96 0 00-.189.866c0 .298.059.605.189.866.108.215.395.634.936.634.54 0 .828-.419.936-.634.13-.26.189-.568.189-.866 0-.298-.059-.605-.189-.866-.108-.215-.395-.634-.936-.634zm4.314.634c.108-.215.395-.634.936-.634.54 0 .828.419.936.634.13.26.189.568.189.866 0 .298-.059.605-.189.866-.108.215-.395.634-.936.634-.54 0-.828-.419-.936-.634a1.96 1.96 0 01-.189-.866c0-.298.059-.605.189-.866zm2.023 6.828a.75.75 0 10-1.06-1.06 3.75 3.75 0 01-5.304 0 .75.75 0 00-1.06 1.06 5.25 5.25 0 007.424 0z" clipRule="evenodd" />
                 </svg>
               </button>
-              {showEmojiPicker && (
-                <EmojiPicker
-                  onSelect={(emoji) => {
-                    setContent((prev) => prev + emoji)
-                  }}
-                  onClose={() => setShowEmojiPicker(false)}
-                />
-              )}
             </div>
+            {showEmojiPicker && (
+              <EmojiPicker
+                anchorRef={emojiAnchorRef}
+                onSelect={(emoji) => {
+                  setContent((prev) => prev + emoji)
+                }}
+                onClose={() => setShowEmojiPicker(false)}
+              />
+            )}
 
             {/* Text input */}
             <textarea
+              ref={composeInputRef}
               rows={1}
               value={content}
               onChange={handleChange}
               onKeyDown={handleKeyDown}
+              onFocus={() => logComposeInputColors('focus')}
               placeholder="Type a message..."
-              className="flex-1 bg-transparent text-theme-text-on-other placeholder-theme-text-on-other/50 py-2 px-1 text-sm focus:outline-none resize-none max-h-32 overflow-y-auto leading-5"
+              className="flex-1 bg-transparent text-theme-compose-text placeholder:text-theme-compose-muted py-2 px-1 text-sm caret-theme-primary focus:outline-none resize-none max-h-32 overflow-y-auto leading-5"
               onInput={(e) => {
                 e.target.style.height = 'auto'
                 e.target.style.height = Math.min(e.target.scrollHeight, 128) + 'px'
@@ -1159,7 +1203,7 @@ const ChatWindow = ({ onToggleInfo }) => {
             <button
               onClick={() => fileInputRef.current?.click()}
               disabled={uploading}
-              className="text-gray-400 hover:text-blue-500 p-2 rounded-full transition-colors disabled:opacity-50 shrink-0 btn-hover"
+              className="touch-target flex items-center justify-center text-theme-compose-muted hover:text-theme-primary rounded-full transition-colors disabled:opacity-50 shrink-0 btn-hover"
               title="Attach file"
               type="button"
             >
@@ -1177,7 +1221,7 @@ const ChatWindow = ({ onToggleInfo }) => {
           <button
             onClick={handleSend}
             disabled={!content.trim() || sending}
-            className={`p-2.5 rounded-full flex items-center justify-center transition-all duration-200 shrink-0 shadow-md btn-hover ${
+            className={`touch-target rounded-full flex items-center justify-center transition-all duration-200 shrink-0 shadow-md btn-hover ${
               content.trim() && !sending
                 ? 'bg-gradient-to-r from-blue-500 to-purple-600 text-white hover:shadow-lg hover:scale-105 active:scale-95'
                 : 'bg-gray-200 dark:bg-gray-700 text-gray-400 dark:text-gray-500'
@@ -1197,7 +1241,7 @@ const ChatWindow = ({ onToggleInfo }) => {
       {/* Context menu */}
       {ctxMenu && !ctxMenu.msg.isDeleted && (
         <div
-          className="fixed z-50 bg-theme-input-bg rounded-xl shadow-xl border border-theme-border py-1 min-w-[180px]"
+          className="fixed z-[60] bg-theme-input-bg rounded-xl shadow-xl border border-theme-border py-1 min-w-[180px] max-w-[calc(100vw-1rem)]"
           style={{ top: Math.min(ctxMenu.y, window.innerHeight - 320), left: Math.min(ctxMenu.x, window.innerWidth - 200) }}
           onClick={(e) => e.stopPropagation()}
         >

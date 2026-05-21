@@ -28,8 +28,8 @@ const LoginPage = () => {
   }
 
   return (
-    <div className="flex flex-1 items-center justify-center bg-gray-50 dark:bg-gray-950">
-      <form onSubmit={handleSubmit} className="bg-white dark:bg-gray-900 p-8 rounded-lg shadow w-full max-w-sm space-y-4">
+    <div className="flex flex-1 items-center justify-center bg-gray-50 dark:bg-gray-950 px-4 py-6">
+      <form onSubmit={handleSubmit} className="bg-white dark:bg-gray-900 p-6 sm:p-8 rounded-lg shadow w-full max-w-sm space-y-4">
         <h1 className="text-xl font-semibold text-gray-800 dark:text-white">Sign in</h1>
         {error && <p className="text-sm text-red-500">{error}</p>}
         <input
@@ -37,7 +37,7 @@ const LoginPage = () => {
           placeholder="Email"
           value={form.email}
           onChange={(e) => setForm({ ...form, email: e.target.value })}
-          className="w-full border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-800 dark:text-white placeholder-gray-400 rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+          className="w-full min-h-11 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-800 dark:text-white placeholder-gray-400 rounded px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
           required
         />
         <input
@@ -45,10 +45,10 @@ const LoginPage = () => {
           placeholder="Password"
           value={form.password}
           onChange={(e) => setForm({ ...form, password: e.target.value })}
-          className="w-full border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-800 dark:text-white placeholder-gray-400 rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+          className="w-full min-h-11 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-800 dark:text-white placeholder-gray-400 rounded px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
           required
         />
-        <button type="submit" className="w-full bg-blue-600 text-white py-2 rounded text-sm hover:bg-blue-700">
+        <button type="submit" className="w-full min-h-11 bg-blue-600 text-white py-2.5 rounded text-sm hover:bg-blue-700">
           Login
         </button>
         <p className="text-sm text-center text-gray-500 dark:text-gray-400">

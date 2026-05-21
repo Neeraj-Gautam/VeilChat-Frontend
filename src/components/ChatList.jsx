@@ -144,7 +144,7 @@ const ChatList = () => {
             placeholder="Search or start a new chat"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full pl-9 pr-3 py-2 text-sm bg-theme-input-bg text-gray-800 dark:text-gray-200 placeholder-gray-400 dark:placeholder-gray-500 rounded-xl focus:outline-none focus:ring-2 focus:ring-theme-primary/50 transition-all"
+            className="w-full min-h-11 pl-9 pr-3 py-2.5 text-sm bg-theme-compose-bg text-theme-compose-text placeholder:text-theme-compose-muted border border-theme-border/40 rounded-xl focus:outline-none focus:ring-2 focus:ring-theme-primary/50 transition-all"
           />
         </div>
       </div>
@@ -153,30 +153,30 @@ const ChatList = () => {
       <div className="px-3 py-2 border-b border-theme-border flex items-center gap-2">
         <button
           onClick={() => setActiveFilter('all')}
-          className={`px-3 py-1.5 text-xs font-medium rounded-full transition-all btn-hover ${
+          className={`min-h-11 px-3 py-2 text-xs font-medium rounded-full transition-all btn-hover ${
             activeFilter === 'all'
               ? 'bg-theme-primary text-theme-text-on-primary shadow-sm'
-              : 'bg-theme-input-bg text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700'
+              : 'bg-theme-input-bg text-theme-compose-text hover:bg-theme-border/30'
           }`}
         >
           All
         </button>
         <button
           onClick={() => setActiveFilter('unread')}
-          className={`px-3 py-1.5 text-xs font-medium rounded-full transition-all btn-hover ${
+          className={`min-h-11 px-3 py-2 text-xs font-medium rounded-full transition-all btn-hover ${
             activeFilter === 'unread'
               ? 'bg-theme-primary text-theme-text-on-primary shadow-sm'
-              : 'bg-theme-input-bg text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700'
+              : 'bg-theme-input-bg text-theme-compose-text hover:bg-theme-border/30'
           }`}
         >
           Unread
         </button>
         <button
           onClick={() => setActiveFilter('pinned')}
-          className={`px-3 py-1.5 text-xs font-medium rounded-full transition-all btn-hover ${
+          className={`min-h-11 px-3 py-2 text-xs font-medium rounded-full transition-all btn-hover ${
             activeFilter === 'pinned'
               ? 'bg-theme-primary text-theme-text-on-primary shadow-sm'
-              : 'bg-theme-input-bg text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700'
+              : 'bg-theme-input-bg text-theme-compose-text hover:bg-theme-border/30'
           }`}
         >
           Pinned
@@ -314,11 +314,11 @@ const ChatList = () => {
                       {chat.lastMessage.type === 'system' ? (
                         <span className="italic">{chat.lastMessage.content}</span>
                       ) : chat.lastMessage.content?.match(/https?:\/\/[^\s]+/) ? (
-                        <span className="flex items-center gap-1">
-                          <svg xmlns="http://www.w3.org/2000/svg" className="w-3 h-3 inline" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <span className="flex items-center gap-1 min-w-0">
+                          <svg xmlns="http://www.w3.org/2000/svg" className="w-3 h-3 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" />
                           </svg>
-                          {chat.lastMessage.content}
+                          <span className="truncate">{chat.lastMessage.content}</span>
                         </span>
                       ) : (
                         chat.lastMessage.content
@@ -336,7 +336,7 @@ const ChatList = () => {
                 e.stopPropagation()
                 handlePinChat(e, chat)
               }}
-              className={`shrink-0 p-1.5 rounded-lg transition-all btn-hover ${
+              className={`touch-target shrink-0 flex items-center justify-center rounded-lg transition-all btn-hover ${
                 isPinned 
                   ? 'text-yellow-500 hover:text-yellow-600' 
                   : 'text-gray-400 hover:text-gray-600 dark:text-gray-500 dark:hover:text-gray-300'

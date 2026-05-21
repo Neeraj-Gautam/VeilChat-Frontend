@@ -78,7 +78,7 @@ const NewChatModal = ({ onClose }) => {
         {/* Header */}
         <div className="flex items-center justify-between px-4 py-3 border-b border-theme-border">
           <h2 className="text-sm font-semibold text-theme-text-on-other">New Chat</h2>
-          <button onClick={onClose} className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-200">✕</button>
+          <button onClick={onClose} className="touch-target flex items-center justify-center text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 rounded-lg" aria-label="Close">✕</button>
         </div>
 
         {/* Tabs */}

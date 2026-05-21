@@ -90,11 +90,11 @@ const GroupInfoPanel = ({ onClose }) => {
   }
 
   return (
-    <div className="w-80 border-l border-theme-border bg-theme-input-bg flex flex-col h-full overflow-y-auto">
+    <div className="fixed inset-y-0 right-0 z-40 flex w-full max-w-sm flex-col overflow-y-auto border-l border-theme-border bg-theme-input-bg shadow-xl md:relative md:z-auto md:w-80 md:max-w-none md:shrink-0 md:shadow-none h-full">
       {/* Header */}
-      <div className="flex items-center justify-between px-4 py-3 border-b border-theme-border">
+      <div className="flex items-center justify-between px-4 py-3 border-b border-theme-border shrink-0">
         <h3 className="text-sm font-semibold text-theme-text-on-other">Group Info</h3>
-        <button onClick={onClose} className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-200">✕</button>
+        <button onClick={onClose} className="touch-target flex items-center justify-center text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 rounded-lg" aria-label="Close group info">✕</button>
       </div>
 
       {/* Group avatar + name */}

@@ -85,7 +85,7 @@ const ImageViewer = ({ image, onClose, allImages = [], currentIndex = 0, onNavig
             {/* Zoom Out */}
             <button
               onClick={handleZoomOut}
-              className="p-2 hover:bg-white/10 rounded-full transition"
+              className="touch-target flex items-center justify-center hover:bg-white/10 rounded-full transition"
               title="Zoom out"
             >
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -129,7 +129,7 @@ const ImageViewer = ({ image, onClose, allImages = [], currentIndex = 0, onNavig
             {/* Close */}
             <button
               onClick={onClose}
-              className="p-2 hover:bg-white/10 rounded-full transition"
+              className="touch-target flex items-center justify-center hover:bg-white/10 rounded-full transition"
               title="Close"
             >
               <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">

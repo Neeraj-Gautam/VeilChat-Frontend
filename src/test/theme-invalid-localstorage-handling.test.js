@@ -1,16 +1,11 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest'
 import * as fc from 'fast-check'
 import useThemeStore from '../store/useThemeStore'
+import { LEGACY_THEME_SPEC, LEGACY_THEME_IDS, resetThemeTestState } from './themeTestHelpers'
 
 describe('Property Test: Invalid localStorage Handling', () => {
   beforeEach(() => {
-    // Clear localStorage before each test
-    localStorage.clear()
-    // Reset document.documentElement.setAttribute
-    document.documentElement.setAttribute('data-theme', 'light')
-    // Reset Zustand store to initial state
-    useThemeStore.setState({ theme: 'light' })
-    // Clear all mocks
+    resetThemeTestState()
     vi.clearAllMocks()
   })
 
@@ -70,7 +65,7 @@ describe('Property Test: Invalid localStorage Handling', () => {
         // Step 7: Verify the system can continue functioning by setting a valid theme
         const { setTheme } = useThemeStore.getState()
         setTheme('dark')
-        const functionalityWorks = useThemeStore.getState().theme === 'dark'
+        const functionalityWorks = JSON.stringify(useThemeStore.getState().theme) === JSON.stringify(LEGACY_THEME_SPEC.dark.theme)
 
         // Step 8: Restore console.warn
         consoleWarnSpy.mockRestore()
@@ -156,7 +151,7 @@ describe('Property Test: Invalid localStorage Handling', () => {
         // Step 6: Verify system continues functioning
         const { setTheme } = useThemeStore.getState()
         setTheme('whatsapp')
-        const functionalityWorks = useThemeStore.getState().theme === 'whatsapp'
+        const functionalityWorks = JSON.stringify(useThemeStore.getState().theme) === JSON.stringify(LEGACY_THEME_SPEC.whatsapp.theme)
 
         // Step 7: Verify all conditions
         return (
@@ -220,10 +215,11 @@ describe('Property Test: Invalid localStorage Handling', () => {
           const localStorageTheme = localStorage.getItem('theme')
 
           // Step 6: Verify complete recovery and normal operation
+          const spec = LEGACY_THEME_SPEC[validTheme]
           return (
-            zustandTheme === validTheme &&
-            domTheme === validTheme &&
-            localStorageTheme === validTheme
+            JSON.stringify(zustandTheme) === JSON.stringify(spec.theme) &&
+            domTheme === spec.key &&
+            localStorageTheme === spec.key
           )
         }
       ),
@@ -282,7 +278,7 @@ describe('Property Test: Invalid localStorage Handling', () => {
           setTheme('light')
           
           const recoveredTheme = useThemeStore.getState().theme
-          if (recoveredTheme !== 'light') {
+          if (JSON.stringify(recoveredTheme) !== JSON.stringify(LEGACY_THEME_SPEC.light.theme)) {
             return false
           }
         }
@@ -311,12 +307,12 @@ describe('Property Test: Invalid localStorage Handling', () => {
 
     fc.assert(
       fc.property(validThemeArbitrary, (validTheme) => {
-        // Step 1: Set a valid theme in localStorage
-        localStorage.setItem('theme', validTheme)
+        // Step 1: Set a valid theme in localStorage (combined key format)
+        localStorage.setItem('theme', LEGACY_THEME_SPEC[validTheme].key)
 
         // Step 2: Verify valid theme is stored
         const storedValue = localStorage.getItem('theme')
-        if (storedValue !== validTheme) {
+        if (storedValue !== LEGACY_THEME_SPEC[validTheme].key) {
           return false
         }
 
@@ -327,22 +323,22 @@ describe('Property Test: Invalid localStorage Handling', () => {
         let initializedTheme = 'light'
         let clearedData = false
 
-        if (stored !== null && !validThemes.includes(stored)) {
+        const combinedValid = /^(whatsapp|telegram)-(light|dark)$/
+        if (stored !== null && !validThemes.includes(stored) && !combinedValid.test(stored)) {
           localStorage.removeItem('theme')
           clearedData = true
           initializedTheme = 'light'
-        } else if (stored !== null && validThemes.includes(stored)) {
+        } else if (stored !== null && (validThemes.includes(stored) || combinedValid.test(stored))) {
           initializedTheme = stored
         }
 
-        // Step 4: Verify valid theme was NOT cleared
         const afterInit = localStorage.getItem('theme')
+        const expectedKey = LEGACY_THEME_SPEC[validTheme]?.key ?? validTheme
 
-        // Step 5: Verify initialized theme matches the valid stored theme
         return (
           !clearedData &&
-          afterInit === validTheme &&
-          initializedTheme === validTheme
+          afterInit === expectedKey &&
+          initializedTheme === expectedKey
         )
       }),
       {

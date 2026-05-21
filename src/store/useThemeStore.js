@@ -4,6 +4,38 @@ import { create } from 'zustand'
 const VALID_BASES = ['whatsapp', 'telegram']
 const VALID_MODES = ['light', 'dark']
 
+/** Legacy single-token themes (tests + older callers) */
+const LEGACY_THEME_MAP = {
+  light: { base: 'whatsapp', mode: 'light' },
+  dark: { base: 'whatsapp', mode: 'dark' },
+  whatsapp: { base: 'whatsapp', mode: 'light' },
+  telegram: { base: 'telegram', mode: 'light' },
+}
+
+const resolveThemeArgs = (arg1, arg2) => {
+  if (arg2 !== undefined) {
+    if (VALID_BASES.includes(arg1) && VALID_MODES.includes(arg2)) {
+      return { base: arg1, mode: arg2 }
+    }
+    return null
+  }
+  if (typeof arg1 !== 'string' || arg1.trim() === '') return null
+
+  if (arg1.includes('-')) {
+    const [base, mode] = arg1.split('-')
+    if (VALID_BASES.includes(base) && VALID_MODES.includes(mode)) {
+      return { base, mode }
+    }
+    return null
+  }
+
+  if (Object.hasOwn(LEGACY_THEME_MAP, arg1)) {
+    return LEGACY_THEME_MAP[arg1]
+  }
+
+  return null
+}
+
 // Check if browser supports CSS custom properties
 const checkCSSCustomPropertySupport = () => {
   if (typeof CSS === 'undefined' || typeof CSS.supports !== 'function') {
@@ -73,23 +105,33 @@ const initializeTheme = () => {
 // Get initial theme
 const initialTheme = initializeTheme()
 
+const applyThemeToDocument = (base, mode) => {
+  const themeString = `${base}-${mode}`
+  document.documentElement.setAttribute('data-theme', themeString)
+  document.documentElement.classList.toggle('dark', mode === 'dark')
+}
+
 // Set data-theme attribute synchronously before first paint
-document.documentElement.setAttribute('data-theme', `${initialTheme.base}-${initialTheme.mode}`)
+applyThemeToDocument(initialTheme.base, initialTheme.mode)
 
 const useThemeStore = create((set) => ({
   theme: initialTheme,
 
-  setTheme: (base, mode) => {
-    // Validate theme against whitelist
-    if (!VALID_BASES.includes(base) || !VALID_MODES.includes(mode)) {
-      console.warn(`Invalid theme "${base}-${mode}". Valid bases: ${VALID_BASES.join(', ')}, modes: ${VALID_MODES.join(', ')}`)
+  setTheme: (baseOrLegacy, mode) => {
+    const resolved = resolveThemeArgs(baseOrLegacy, mode)
+    if (!resolved) {
+      const label = mode !== undefined ? `${baseOrLegacy}-${mode}` : String(baseOrLegacy)
+      console.warn(
+        `Invalid theme "${label}". Valid bases: ${VALID_BASES.join(', ')}, modes: ${VALID_MODES.join(', ')} ` +
+        `(legacy: light, dark, whatsapp, telegram)`
+      )
       return
     }
 
-    const themeString = `${base}-${mode}`
-    
-    // Update DOM data-theme attribute
-    document.documentElement.setAttribute('data-theme', themeString)
+    const { base, mode: resolvedMode } = resolved
+    const themeString = `${base}-${resolvedMode}`
+
+    applyThemeToDocument(base, resolvedMode)
     
     // Persist to localStorage with error handling
     try {
@@ -99,7 +141,7 @@ const useThemeStore = create((set) => ({
     }
     
     // Update Zustand state
-    set({ theme: { base, mode } })
+    set({ theme: { base, mode: resolvedMode } })
   },
 }))
 

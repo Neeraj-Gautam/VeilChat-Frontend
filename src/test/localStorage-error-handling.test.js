@@ -1,5 +1,11 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
 import useThemeStore from '../store/useThemeStore'
+import {
+  LEGACY_THEME_IDS,
+  LEGACY_THEME_SPEC,
+  resetThemeTestState,
+  expectLegacyThemeApplied,
+} from './themeTestHelpers'
 
 /**
  * Unit Tests: localStorage Error Handling
@@ -18,15 +24,8 @@ describe('localStorage Error Handling', () => {
   let consoleWarnSpy
 
   beforeEach(() => {
-    // Clear localStorage before each test
-    localStorage.clear()
-    // Reset document.documentElement.setAttribute
-    document.documentElement.setAttribute('data-theme', 'light')
-    // Reset Zustand store to initial state
-    useThemeStore.setState({ theme: 'light' })
-    // Clear all mocks
+    resetThemeTestState()
     vi.clearAllMocks()
-    // Setup console.warn spy
     consoleWarnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {})
   })
 
@@ -109,18 +108,13 @@ describe('localStorage Error Handling', () => {
     expect(() => setTheme('dark')).not.toThrow()
 
     // Verify Zustand state was updated
-    expect(useThemeStore.getState().theme).toBe('dark')
+    expectLegacyThemeApplied('dark', { checkStorage: false })
 
-    // Verify DOM attribute was updated
-    expect(document.documentElement.getAttribute('data-theme')).toBe('dark')
-
-    // Verify warning was logged
     expect(consoleWarnSpy).toHaveBeenCalledWith(
       expect.stringContaining('Failed to persist theme to localStorage'),
       expect.any(Error)
     )
 
-    // Restore
     Storage.prototype.setItem = originalSetItem
   })
 
@@ -148,21 +142,13 @@ describe('localStorage Error Handling', () => {
     })
 
     const { setTheme } = useThemeStore.getState()
-    const validThemes = ['light', 'dark', 'whatsapp', 'telegram']
-
-    // Test switching between all valid themes
-    validThemes.forEach(theme => {
-      setTheme(theme)
-
-      // Verify Zustand state was updated
-      expect(useThemeStore.getState().theme).toBe(theme)
-
-      // Verify DOM attribute was updated
-      expect(document.documentElement.getAttribute('data-theme')).toBe(theme)
+    LEGACY_THEME_IDS.forEach((legacyId) => {
+      setTheme(legacyId)
+      expectLegacyThemeApplied(legacyId, { checkStorage: false })
     })
 
     // Verify warnings were logged for each setTheme call
-    expect(consoleWarnSpy).toHaveBeenCalledTimes(validThemes.length)
+    expect(consoleWarnSpy).toHaveBeenCalledTimes(LEGACY_THEME_IDS.length)
 
     // Restore
     Storage.prototype.getItem = originalGetItem
@@ -253,40 +239,32 @@ describe('localStorage Error Handling', () => {
 
     // Step 1: Set theme to 'telegram' in current session
     setTheme('telegram')
-    expect(useThemeStore.getState().theme).toBe('telegram')
+    expectLegacyThemeApplied('telegram', { checkStorage: false })
 
     // Step 2: Simulate page reload by resetting store to initial state
     // In a real reload, the store would be re-initialized from localStorage
     // Since localStorage is unavailable, it should default to 'light'
-    let reloadedTheme = 'light' // Default
+    let reloadedTheme = LEGACY_THEME_SPEC.light.key
     try {
       const stored = localStorage.getItem('theme')
-      const validThemes = ['light', 'dark', 'whatsapp', 'telegram']
-      
-      if (stored !== null && validThemes.includes(stored)) {
+      const validCombined = /^(whatsapp|telegram)-(light|dark)$/
+
+      if (stored !== null && validCombined.test(stored)) {
         reloadedTheme = stored
       }
-    } catch (error) {
-      // localStorage unavailable, use default
-      reloadedTheme = 'light'
+    } catch {
+      reloadedTheme = LEGACY_THEME_SPEC.light.key
     }
 
-    // Step 3: Verify theme reset to default 'light'
-    expect(reloadedTheme).toBe('light')
+    expect(reloadedTheme).toBe(LEGACY_THEME_SPEC.light.key)
+    expect(reloadedTheme).not.toBe(LEGACY_THEME_SPEC.telegram.key)
 
-    // Step 4: Verify the in-memory theme from previous session is not retained
-    expect(reloadedTheme).not.toBe('telegram')
-
-    // Step 5: Simulate setting the reloaded theme
-    useThemeStore.setState({ theme: reloadedTheme })
+    useThemeStore.setState({ theme: { ...LEGACY_THEME_SPEC.light.theme } })
     document.documentElement.setAttribute('data-theme', reloadedTheme)
 
-    // Step 6: Verify system continues functioning after reload
     setTheme('dark')
-    expect(useThemeStore.getState().theme).toBe('dark')
-    expect(document.documentElement.getAttribute('data-theme')).toBe('dark')
+    expectLegacyThemeApplied('dark', { checkStorage: false })
 
-    // Restore
     Storage.prototype.getItem = originalGetItem
     Storage.prototype.setItem = originalSetItem
   })
@@ -318,16 +296,16 @@ describe('localStorage Error Handling', () => {
 
     // Perform multiple theme switches
     setTheme('dark')
-    expect(useThemeStore.getState().theme).toBe('dark')
+    expectLegacyThemeApplied('dark', { checkStorage: false })
 
     setTheme('whatsapp')
-    expect(useThemeStore.getState().theme).toBe('whatsapp')
+    expectLegacyThemeApplied('whatsapp', { checkStorage: false })
 
     setTheme('telegram')
-    expect(useThemeStore.getState().theme).toBe('telegram')
+    expectLegacyThemeApplied('telegram', { checkStorage: false })
 
     setTheme('light')
-    expect(useThemeStore.getState().theme).toBe('light')
+    expectLegacyThemeApplied('light', { checkStorage: false })
 
     // Verify warnings were logged for each operation
     expect(consoleWarnSpy).toHaveBeenCalledTimes(4)
@@ -370,7 +348,7 @@ describe('localStorage Error Handling', () => {
 
     // Step 2: Set theme while localStorage is unavailable
     setTheme('dark')
-    expect(useThemeStore.getState().theme).toBe('dark')
+    expectLegacyThemeApplied('dark', { checkStorage: false })
     expect(consoleWarnSpy).toHaveBeenCalledWith(
       expect.stringContaining('Failed to persist theme to localStorage'),
       expect.any(Error)
@@ -381,13 +359,10 @@ describe('localStorage Error Handling', () => {
 
     // Step 4: Set theme while localStorage is available
     setTheme('whatsapp')
-    expect(useThemeStore.getState().theme).toBe('whatsapp')
-    expect(localStorage.getItem('theme')).toBe('whatsapp')
+    expectLegacyThemeApplied('whatsapp')
 
-    // Step 5: Verify persistence works
     setTheme('telegram')
-    expect(useThemeStore.getState().theme).toBe('telegram')
-    expect(localStorage.getItem('theme')).toBe('telegram')
+    expectLegacyThemeApplied('telegram')
 
     // Restore
     Storage.prototype.setItem = originalSetItem
@@ -414,7 +389,7 @@ describe('localStorage Error Handling', () => {
     const { setTheme } = useThemeStore.getState()
     setTheme('dark')
 
-    expect(useThemeStore.getState().theme).toBe('dark')
+    expectLegacyThemeApplied('dark', { checkStorage: false })
     expect(consoleWarnSpy).toHaveBeenCalledWith(
       expect.stringContaining('Failed to persist theme to localStorage'),
       expect.objectContaining({
@@ -436,7 +411,7 @@ describe('localStorage Error Handling', () => {
     const { setTheme } = useThemeStore.getState()
     setTheme('whatsapp')
 
-    expect(useThemeStore.getState().theme).toBe('whatsapp')
+    expectLegacyThemeApplied('whatsapp', { checkStorage: false })
     expect(consoleWarnSpy).toHaveBeenCalledWith(
       expect.stringContaining('Failed to persist theme to localStorage'),
       expect.objectContaining({
@@ -493,9 +468,8 @@ describe('localStorage Error Handling', () => {
     // Verify system continues functioning
     const { setTheme } = useThemeStore.getState()
     setTheme('dark')
-    expect(useThemeStore.getState().theme).toBe('dark')
+    expectLegacyThemeApplied('dark', { checkStorage: false })
 
-    // Restore
     Storage.prototype.removeItem = originalRemoveItem
   })
 })

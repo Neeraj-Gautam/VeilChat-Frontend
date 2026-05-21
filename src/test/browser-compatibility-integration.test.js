@@ -1,6 +1,11 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest'
 import * as fc from 'fast-check'
 import useThemeStore from '../store/useThemeStore'
+import {
+  LEGACY_THEME_IDS,
+  LEGACY_THEME_SPEC,
+  resetThemeTestState,
+} from './themeTestHelpers'
 
 // Inject theme CSS into the test environment
 const style = document.createElement('style')
@@ -47,6 +52,62 @@ style.textContent = `
     --color-header-bg: #075e54;
   }
 
+  :root[data-theme="whatsapp-light"] {
+    --color-primary: #25d366;
+    --color-primary-dark: #1da851;
+    --color-chat-bg: #e5ddd5;
+    --color-message-own: #dcf8c6;
+    --color-message-other: #ffffff;
+    --color-text-on-primary: #ffffff;
+    --color-text-on-own: #000000;
+    --color-text-on-other: #000000;
+    --color-border: #d1d7db;
+    --color-input-bg: #ffffff;
+    --color-header-bg: #075e54;
+  }
+
+  :root[data-theme="whatsapp-dark"] {
+    --color-primary: #25d366;
+    --color-primary-dark: #1da851;
+    --color-chat-bg: #1a1a1a;
+    --color-message-own: #dcf8c6;
+    --color-message-other: #2d2d2d;
+    --color-text-on-primary: #ffffff;
+    --color-text-on-own: #000000;
+    --color-text-on-other: #ffffff;
+    --color-border: #3d3d3d;
+    --color-input-bg: #2d2d2d;
+    --color-header-bg: #05442e;
+  }
+
+  :root[data-theme="telegram-light"] {
+    --color-primary: #0088cc;
+    --color-primary-dark: #006699;
+    --color-chat-bg: #e4e9ec;
+    --color-message-own: #effdde;
+    --color-message-other: #ffffff;
+    --color-text-on-primary: #ffffff;
+    --color-text-on-own: #000000;
+    --color-text-on-other: #000000;
+    --color-border: #c8d1d8;
+    --color-input-bg: #ffffff;
+    --color-header-bg: #517da2;
+  }
+
+  :root[data-theme="telegram-dark"] {
+    --color-primary: #0088cc;
+    --color-primary-dark: #006699;
+    --color-chat-bg: #1e2329;
+    --color-message-own: #effdde;
+    --color-message-other: #2b3b4e;
+    --color-text-on-primary: #ffffff;
+    --color-text-on-own: #000000;
+    --color-text-on-other: #ffffff;
+    --color-border: #3a4a5c;
+    --color-input-bg: #2b3b4e;
+    --color-header-bg: #365180;
+  }
+
   :root[data-theme="telegram"] {
     --color-primary: #0088cc;
     --color-primary-dark: #006699;
@@ -73,14 +134,9 @@ style.textContent = `
 document.head.appendChild(style)
 
 describe('Browser Compatibility Integration Tests', () => {
-  const VALID_THEMES = ['light', 'dark', 'whatsapp', 'telegram']
-
   beforeEach(() => {
-    // Reset state before each test
-    localStorage.clear()
-    document.documentElement.removeAttribute('data-theme')
+    resetThemeTestState()
     document.documentElement.removeAttribute('data-css-vars')
-    useThemeStore.setState({ theme: 'light' })
     vi.clearAllMocks()
   })
 
@@ -105,25 +161,19 @@ describe('Browser Compatibility Integration Tests', () => {
       // Apply a theme and verify CSS variables are applied
       const { setTheme } = useThemeStore.getState()
       
-      VALID_THEMES.forEach(theme => {
-        setTheme(theme)
+      LEGACY_THEME_IDS.forEach((legacyId) => {
+        setTheme(legacyId)
+        const spec = LEGACY_THEME_SPEC[legacyId]
         
-        // Verify DOM attribute is set
         const domTheme = document.documentElement.getAttribute('data-theme')
-        expect(domTheme).toBe(theme)
+        expect(domTheme).toBe(spec.key)
         
-        // Verify CSS variables are available
         const styles = getComputedStyle(document.documentElement)
         const primaryColor = styles.getPropertyValue('--color-primary').trim()
         expect(primaryColor).not.toBe('')
         
-        // Verify Zustand state is updated
-        const storeTheme = useThemeStore.getState().theme
-        expect(storeTheme).toBe(theme)
-        
-        // Verify localStorage persistence
-        const storedTheme = localStorage.getItem('theme')
-        expect(storedTheme).toBe(theme)
+        expect(useThemeStore.getState().theme).toEqual(spec.theme)
+        expect(localStorage.getItem('theme')).toBe(spec.key)
       })
 
       // Restore CSS.supports
@@ -155,7 +205,7 @@ describe('Browser Compatibility Integration Tests', () => {
       const { setTheme } = useThemeStore.getState()
 
       // Test all themes have all CSS variables defined
-      VALID_THEMES.forEach(theme => {
+      LEGACY_THEME_IDS.forEach((theme) => {
         setTheme(theme)
         
         const styles = getComputedStyle(document.documentElement)
@@ -178,7 +228,7 @@ describe('Browser Compatibility Integration Tests', () => {
       // Rapidly switch between themes
       const startTime = performance.now()
       
-      VALID_THEMES.forEach(theme => {
+      LEGACY_THEME_IDS.forEach((theme) => {
         setTheme(theme)
       })
       
@@ -189,8 +239,8 @@ describe('Browser Compatibility Integration Tests', () => {
       expect(switchTime).toBeLessThan(100)
       
       // Verify final theme is correct
-      expect(useThemeStore.getState().theme).toBe('telegram')
-      expect(document.documentElement.getAttribute('data-theme')).toBe('telegram')
+      expect(useThemeStore.getState().theme).toEqual(LEGACY_THEME_SPEC.telegram.theme)
+      expect(document.documentElement.getAttribute('data-theme')).toBe(LEGACY_THEME_SPEC.telegram.key)
     })
   })
 
@@ -255,12 +305,12 @@ describe('Browser Compatibility Integration Tests', () => {
       
       // Should still be able to switch themes
       setTheme('whatsapp')
-      expect(useThemeStore.getState().theme).toBe('whatsapp')
-      expect(document.documentElement.getAttribute('data-theme')).toBe('whatsapp')
+      expect(useThemeStore.getState().theme).toEqual(LEGACY_THEME_SPEC.whatsapp.theme)
+      expect(document.documentElement.getAttribute('data-theme')).toBe(LEGACY_THEME_SPEC.whatsapp.key)
       
       setTheme('dark')
-      expect(useThemeStore.getState().theme).toBe('dark')
-      expect(document.documentElement.getAttribute('data-theme')).toBe('dark')
+      expect(useThemeStore.getState().theme).toEqual(LEGACY_THEME_SPEC.dark.theme)
+      expect(document.documentElement.getAttribute('data-theme')).toBe(LEGACY_THEME_SPEC.dark.key)
     })
 
     it('should persist theme selection in fallback mode', () => {
@@ -272,7 +322,7 @@ describe('Browser Compatibility Integration Tests', () => {
       
       // Verify persistence works in fallback mode
       const stored = localStorage.getItem('theme')
-      expect(stored).toBe('telegram')
+      expect(stored).toBe(LEGACY_THEME_SPEC.telegram.key)
     })
 
     it('should work with static Tailwind fallback classes', () => {
@@ -319,12 +369,12 @@ describe('Browser Compatibility Integration Tests', () => {
       // Verify theme switching works on mobile viewport
       const { setTheme } = useThemeStore.getState()
       
-      VALID_THEMES.forEach(theme => {
+      LEGACY_THEME_IDS.forEach((theme) => {
         setTheme(theme)
         
         // Core functionality should work
-        expect(useThemeStore.getState().theme).toBe(theme)
-        expect(document.documentElement.getAttribute('data-theme')).toBe(theme)
+        expect(useThemeStore.getState().theme).toEqual(LEGACY_THEME_SPEC[theme].theme)
+        expect(document.documentElement.getAttribute('data-theme')).toBe(LEGACY_THEME_SPEC[theme].key)
       })
 
       // Restore viewport
@@ -341,7 +391,7 @@ describe('Browser Compatibility Integration Tests', () => {
       
       // First, verify theme switching works
       setTheme('whatsapp')
-      expect(useThemeStore.getState().theme).toBe('whatsapp')
+      expect(useThemeStore.getState().theme).toEqual(LEGACY_THEME_SPEC.whatsapp.theme)
       
       // Simulate what happens after a touch event - the theme should still work
       // (we test the actual touch event APIs if available)
@@ -374,18 +424,17 @@ describe('Browser Compatibility Integration Tests', () => {
       
       // After any touch interaction (or if Touch not supported), theme switching should work
       setTheme('dark')
-      expect(useThemeStore.getState().theme).toBe('dark')
+      expect(useThemeStore.getState().theme).toEqual(LEGACY_THEME_SPEC.dark.theme)
     })
 
     it('should have accessible theme selector for mobile users', () => {
-      // Verify theme store provides accessible setTheme function
       const { setTheme, theme } = useThemeStore.getState()
       
-      // setTheme should be a function that can be called
       expect(typeof setTheme).toBe('function')
-      
-      // theme should be a valid string
-      expect(VALID_THEMES).toContain(theme)
+      expect(theme).toEqual(expect.objectContaining({
+        base: expect.stringMatching(/^(whatsapp|telegram)$/),
+        mode: expect.stringMatching(/^(light|dark)$/),
+      }))
     })
 
     it('should persist theme across page reloads on mobile', () => {
@@ -395,18 +444,18 @@ describe('Browser Compatibility Integration Tests', () => {
       setTheme('telegram')
       
       // Verify it's stored
-      expect(localStorage.getItem('theme')).toBe('telegram')
+      expect(localStorage.getItem('theme')).toBe(LEGACY_THEME_SPEC.telegram.key)
       
       // Simulate page reload by re-reading from localStorage (like initializeTheme does)
       const stored = localStorage.getItem('theme')
-      const validThemes = ['light', 'dark', 'whatsapp', 'telegram']
+      const combinedValid = /^(whatsapp|telegram)-(light|dark)$/
       
-      let initializedTheme = 'light'
-      if (stored !== null && validThemes.includes(stored)) {
+      let initializedTheme = LEGACY_THEME_SPEC.light.key
+      if (stored !== null && combinedValid.test(stored)) {
         initializedTheme = stored
       }
       
-      expect(initializedTheme).toBe('telegram')
+      expect(initializedTheme).toBe(LEGACY_THEME_SPEC.telegram.key)
     })
 
     it('should handle mobile-specific CSS viewport units', () => {
@@ -414,7 +463,7 @@ describe('Browser Compatibility Integration Tests', () => {
       const { setTheme } = useThemeStore.getState()
       
       // Set each theme and verify computed styles
-      VALID_THEMES.forEach(theme => {
+      LEGACY_THEME_IDS.forEach((theme) => {
         setTheme(theme)
         
         const styles = getComputedStyle(document.documentElement)
@@ -436,7 +485,7 @@ describe('Browser Compatibility Integration Tests', () => {
       
       // Normal operation
       setTheme('dark')
-      expect(useThemeStore.getState().theme).toBe('dark')
+      expect(useThemeStore.getState().theme).toEqual(LEGACY_THEME_SPEC.dark.theme)
       
       // Simulate localStorage becoming unavailable (private browsing)
       const originalSetItem = localStorage.setItem
@@ -450,7 +499,7 @@ describe('Browser Compatibility Integration Tests', () => {
       }).not.toThrow()
       
       // In-memory state should still work
-      expect(useThemeStore.getState().theme).toBe('whatsapp')
+      expect(useThemeStore.getState().theme).toEqual(LEGACY_THEME_SPEC.whatsapp.theme)
       
       // Restore localStorage
       localStorage.setItem = originalSetItem
@@ -473,7 +522,7 @@ describe('Browser Compatibility Integration Tests', () => {
      * the theme should be correctly applied to the DOM, store, and localStorage.
      */
     it('should apply any valid theme in modern browsers', () => {
-      const themeArbitrary = fc.constantFrom('light', 'dark', 'whatsapp', 'telegram')
+      const themeArbitrary = fc.constantFrom(...LEGACY_THEME_IDS)
       
       // Mock modern browser
       if (globalThis.CSS) {
@@ -481,19 +530,15 @@ describe('Browser Compatibility Integration Tests', () => {
       }
 
       fc.assert(
-        fc.property(themeArbitrary, (theme) => {
+        fc.property(themeArbitrary, (legacyId) => {
           const { setTheme } = useThemeStore.getState()
-          setTheme(theme)
-          
-          // Verify in all three locations
-          const zustandTheme = useThemeStore.getState().theme
-          const domTheme = document.documentElement.getAttribute('data-theme')
-          const localStorageTheme = localStorage.getItem('theme')
+          setTheme(legacyId)
+          const spec = LEGACY_THEME_SPEC[legacyId]
           
           return (
-            zustandTheme === theme &&
-            domTheme === theme &&
-            localStorageTheme === theme
+            JSON.stringify(useThemeStore.getState().theme) === JSON.stringify(spec.theme) &&
+            document.documentElement.getAttribute('data-theme') === spec.key &&
+            localStorage.getItem('theme') === spec.key
           )
         }),
         { numRuns: 50, verbose: true }
@@ -510,20 +555,17 @@ describe('Browser Compatibility Integration Tests', () => {
       // Set fallback mode
       document.documentElement.setAttribute('data-css-vars', 'unsupported')
       
-      const themeArbitrary = fc.constantFrom('light', 'dark', 'whatsapp', 'telegram')
+      const themeArbitrary = fc.constantFrom(...LEGACY_THEME_IDS)
 
       fc.assert(
-        fc.property(themeArbitrary, (theme) => {
+        fc.property(themeArbitrary, (legacyId) => {
           const { setTheme } = useThemeStore.getState()
-          setTheme(theme)
-          
-          // In fallback mode, theme should still be stored in state and DOM
-          const zustandTheme = useThemeStore.getState().theme
-          const domTheme = document.documentElement.getAttribute('data-theme')
+          setTheme(legacyId)
+          const spec = LEGACY_THEME_SPEC[legacyId]
           
           return (
-            zustandTheme === theme &&
-            domTheme === theme
+            JSON.stringify(useThemeStore.getState().theme) === JSON.stringify(spec.theme) &&
+            document.documentElement.getAttribute('data-theme') === spec.key
           )
         }),
         { numRuns: 50, verbose: true }
@@ -538,7 +580,7 @@ describe('Browser Compatibility Integration Tests', () => {
      */
     it('should maintain theme functionality after touch interactions', () => {
       // Create touch events
-      const themeArbitrary = fc.constantFrom('light', 'dark', 'whatsapp', 'telegram')
+      const themeArbitrary = fc.constantFrom(...LEGACY_THEME_IDS)
       
       fc.assert(
         fc.property(themeArbitrary, (initialTheme) => {
@@ -558,15 +600,12 @@ describe('Browser Compatibility Integration Tests', () => {
           button.dispatchEvent(touchEnd)
           
           // Try setting another theme after touch
-          const nextTheme = initialTheme === 'light' ? 'dark' : 'light'
-          setTheme(nextTheme)
-          
-          // Theme should still work
-          const finalTheme = useThemeStore.getState().theme
+          const nextLegacyId = initialTheme === 'light' ? 'dark' : 'light'
+          setTheme(nextLegacyId)
           
           document.body.removeChild(button)
           
-          return finalTheme === nextTheme
+          return JSON.stringify(useThemeStore.getState().theme) === JSON.stringify(LEGACY_THEME_SPEC[nextLegacyId].theme)
         }),
         { numRuns: 50, verbose: true }
       )
@@ -598,12 +637,13 @@ describe('Browser Compatibility Integration Tests', () => {
           const finalDomTheme = document.documentElement.getAttribute('data-theme')
           const finalLocalStorageTheme = localStorage.getItem('theme')
           
-          const expectedTheme = themeSequence[themeSequence.length - 1]
+          const expectedLegacyId = themeSequence[themeSequence.length - 1]
+          const expectedSpec = LEGACY_THEME_SPEC[expectedLegacyId]
           
           return (
-            finalTheme === expectedTheme &&
-            finalDomTheme === expectedTheme &&
-            finalLocalStorageTheme === expectedTheme
+            JSON.stringify(finalTheme) === JSON.stringify(expectedSpec.theme) &&
+            finalDomTheme === expectedSpec.key &&
+            finalLocalStorageTheme === expectedSpec.key
           )
         }),
         { numRuns: 50, verbose: true }
@@ -620,8 +660,8 @@ describe('Browser Compatibility Integration Tests', () => {
    */
   describe('Cross-Browser Theme Consistency', () => {
     const expectedThemeColors = {
-      light: { primary: '#3b82f6', chatBg: '#f3f4f6', headerBg: '#ffffff' },
-      dark: { primary: '#3b82f6', chatBg: '#111827', headerBg: '#1f2937' },
+      light: { primary: '#25d366', chatBg: '#e5ddd5', headerBg: '#075e54' },
+      dark: { primary: '#25d366', chatBg: '#1a1a1a', headerBg: '#05442e' },
       whatsapp: { primary: '#25d366', chatBg: '#e5ddd5', headerBg: '#075e54' },
       telegram: { primary: '#0088cc', chatBg: '#e4e9ec', headerBg: '#517da2' },
     }
@@ -680,7 +720,7 @@ describe('Browser Compatibility Integration Tests', () => {
         return (lighter + 0.05) / (darker + 0.05)
       }
 
-      VALID_THEMES.forEach(theme => {
+      LEGACY_THEME_IDS.forEach((theme) => {
         setTheme(theme)
         
         const styles = getComputedStyle(document.documentElement)

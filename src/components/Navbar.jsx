@@ -56,19 +56,19 @@ const Navbar = () => {
 
   return (
     <>
-      <nav className="flex items-center justify-between px-3 md:px-6 py-3 bg-theme-header-bg border-b border-theme-border">
-        <Link to="/" className="text-base md:text-lg font-semibold text-theme-text-on-primary truncate">
+      <nav className="flex items-center justify-between gap-2 px-3 md:px-6 py-2.5 bg-theme-header-bg border-b border-theme-border shrink-0 min-w-0">
+        <Link to="/" className="text-base md:text-lg font-semibold text-theme-text-on-primary truncate min-w-0">
           VeilChat
         </Link>
-        <div className="flex items-center gap-2 md:gap-4 shrink-0">
+        <div className="flex items-center gap-1 sm:gap-2 md:gap-4 shrink-0">
           {/* Settings Link */}
           {user && (
             <Link
               to="/settings"
-              className="text-theme-text-on-primary opacity-70 hover:opacity-100 transition-opacity"
+              className="touch-target flex items-center justify-center text-theme-text-on-primary opacity-70 hover:opacity-100 transition-opacity rounded-lg"
               title="Settings"
             >
-              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-6 h-6">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-6 h-6 shrink-0">
                 <path fillRule="evenodd" d="M11.078 2.25c-.917 0-1.699.663-1.85 1.567L9.05 4.889c-.02.12-.115.26-.297.348a7.493 7.493 0 00-.986.57c-.166.115-.334.126-.45.083L6.3 5.508a1.875 1.875 0 00-2.282.819l-.922 1.597a1.875 1.875 0 00.432 2.385l.84.692c.095.078.17.229.154.43a7.598 7.598 0 000 1.139c.015.2-.059.352-.153.43l-.841.692a1.875 1.875 0 00-.432 2.385l.922 1.597a1.875 1.875 0 002.282.818l1.019-.382c.115-.043.283-.031.45.082.312.214.641.405.985.57.182.088.277.228.297.35l.178 1.071c.151.904.933 1.567 1.85 1.567h1.844c.916 0 1.699-.663 1.85-1.567l.178-1.072c.02-.12.114-.26.297-.349.344-.165.673-.356.985-.57.167-.114.335-.125.45-.082l1.02.382a1.875 1.875 0 002.28-.819l.923-1.597a1.875 1.875 0 00-.432-2.385l-.84-.692c-.095-.078-.17-.229-.154-.43a7.614 7.614 0 000-1.139c-.016-.2.059-.352.153-.43l.84-.692c.708-.582.891-1.59.433-2.385l-.922-1.597a1.875 1.875 0 00-2.282-.818l-1.02.382c-.114.043-.282.031-.449-.083a7.49 7.49 0 00-.985-.57c-.183-.087-.277-.227-.297-.348l-.179-1.072a1.875 1.875 0 00-1.85-1.567h-1.843zM12 15.75a3.75 3.75 0 100-7.5 3.75 3.75 0 000 7.5z" clipRule="evenodd" />
               </svg>
             </Link>
@@ -78,7 +78,7 @@ const Navbar = () => {
           <div className="relative" ref={themeMenuRef}>
             <button
               onClick={() => { setShowThemeMenu(!showThemeMenu); setActiveTab('base') }}
-              className="text-theme-text-on-primary opacity-70 hover:opacity-100 text-lg transition-opacity flex items-center gap-1"
+              className="touch-target flex items-center justify-center gap-1 text-theme-text-on-primary opacity-70 hover:opacity-100 text-lg transition-opacity rounded-lg"
               aria-label="Select theme"
               aria-expanded={showThemeMenu}
               aria-haspopup="true"
@@ -166,7 +166,7 @@ const Navbar = () => {
               {/* Profile Picture */}
               <button
                 onClick={() => setShowProfileModal(true)}
-                className="w-8 h-8 rounded-full overflow-hidden bg-theme-input-bg hover:ring-2 hover:ring-theme-primary transition"
+                className="touch-target w-11 h-11 rounded-full overflow-hidden bg-theme-input-bg hover:ring-2 hover:ring-theme-primary transition shrink-0"
                 title="Update profile picture"
               >
                 {user.avatar ? (
@@ -177,10 +177,10 @@ const Navbar = () => {
                   </div>
                 )}
               </button>
-              <span className="text-sm text-theme-text-on-primary opacity-80">{user.name}</span>
+              <span className="hidden sm:inline text-sm text-theme-text-on-primary opacity-80 max-w-[8rem] truncate">{user.name}</span>
               <button
                 onClick={handleLogout}
-                className="text-sm text-red-500 hover:text-red-700 dark:text-red-400"
+                className="touch-target px-3 text-sm text-red-500 hover:text-red-700 dark:text-red-400 rounded-lg"
               >
                 Logout
               </button>
